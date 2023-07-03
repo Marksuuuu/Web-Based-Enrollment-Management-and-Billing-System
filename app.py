@@ -1,9 +1,8 @@
 import bcrypt
 from flask import Flask, render_template, jsonify, request
-import bcrypt
 import os
 from flask import Flask, render_template, jsonify, request, redirect
-from flask_login import LoginManager
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 import psycopg2
 import psycopg2.extras
 from werkzeug.utils import secure_filename
@@ -19,8 +18,6 @@ db_config = {
     'password': '-clear1125'
 }
 
-
-
 app = Flask(__name__)
 app.secret_key = 'marksuuuu'
 
@@ -32,16 +29,39 @@ app.config['MAIL_USERNAME'] = 'johnraymark3@gmail.com'
 app.config['MAIL_PASSWORD'] = 'qqrlvfznwvjnnjol'
 mail = Mail(app)
 
-# login_manager = LoginManager(app)
-# login_manager.login_view = 'login'
-
 app.config['SECRET_KEY'] = 'marksuuuu'
 serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
+
+
+class User:
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
+
+    def get_id(self):
+        return self.username
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    # Load user from the database based on the user_id
+    with psycopg2.connect(**db_config) as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT username, password FROM public.user_details_tbl WHERE username = %s", (user_id,))
+            result = cur.fetchone()
+            if result:
+                username, password = result
+                return User(username, password)
+    return None
 
 
 def allowed_file(filename):
     allowed_extensions = {'png', 'jpg', 'jpeg', 'gif', 'jfif'}
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
+
 
 def send_verification_email(email):
     token = generate_verification_token(email)
@@ -57,7 +77,7 @@ def send_verification_email(email):
     msg.body = body
     mail.send(msg)
 
-    
+
 def generate_verification_token(email):
     return serializer.dumps(email)
 
@@ -68,6 +88,7 @@ def verify_token(token):
         return email
     except:
         return None
+
 
 @app.route('/register', methods=['POST'])
 def register_insert():
@@ -120,7 +141,6 @@ def register_insert():
         return jsonify({'error': str(e)}), 500
 
 
-    
 @app.route('/verify/<token>')
 def verify_account(token):
     email = verify_token(token)
@@ -134,9 +154,32 @@ def verify_account(token):
         return jsonify({'error': 'Invalid or expired token'}), 400
 
 
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])
 def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        with psycopg2.connect(**db_config) as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT username, password FROM public.user_details_tbl WHERE username = %s", (username,))
+                result = cur.fetchone()
+                if result:
+                    _, hashed_password = result
+                    if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
+                        user = User(username, hashed_password)
+                        login_user(user)
+                        return redirect('/profile')
+                return jsonify({'error': 'Invalid username or password'}), 401
+
     return render_template('login.html')
+
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect('/login')
 
 
 @app.route('/register')
@@ -145,8 +188,15 @@ def register():
 
 
 @app.route('/')
+@login_required
 def index():
     return render_template('index.html')
+
+
+@app.route('/profile')
+@login_required
+def profile():
+    return render_template('profile.html')
 
 
 if __name__ == '__main__':
