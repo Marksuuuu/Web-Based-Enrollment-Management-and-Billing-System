@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 
 
 db_config = {
-    'host': 'localhost',
+    'host': '127.0.0.1',
     'port': '5432',
     'dbname': 'web_based_enrollment_management',
     'user': 'flask_user',
@@ -217,6 +217,10 @@ def register():
 def index():
     return render_template('index.html')
 
+@app.route('/forgotPassword')
+def forgotPassword():
+    return render_template('forgot-password.html')
+
 
 @app.route('/profile')
 @login_required
@@ -225,4 +229,4 @@ def profile():
 
 
 if __name__ == '__main__':
-    app.run(host='localhost', port=8090, debug=True)
+    app.run(host='localhost', port=8085, debug=True)
