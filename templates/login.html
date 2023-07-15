@@ -126,14 +126,14 @@
               <h4 class="mb-2">Welcome to Sneat! 👋</h4>
               <p class="mb-4">Please sign-in to your account and start the adventure</p>
 
-              <form id="formAuthentication" class="mb-3" action="index.html" method="POST">
+              <form id="formAuthentication" class="mb-3" action="/" method="POST">
                 <div class="mb-3">
                   <label for="email" class="form-label">Email or Username</label>
                   <input
                     type="text"
                     class="form-control"
-                    id="email"
-                    name="email-username"
+                    id="username"
+                    name="username"
                     placeholder="Enter your email or username"
                     autofocus
                   />
@@ -164,7 +164,7 @@
                   </div>
                 </div>
                 <div class="mb-3">
-                  <button class="btn btn-primary d-grid w-100" type="submit">Sign in</button>
+                  <button class="btn btn-primary d-grid w-100" type="submit" id='signIn'>Sign in</button>
                 </div>
               </form>
 
@@ -186,18 +186,19 @@
 
     <!-- Core JS -->
     <!-- build:js assets/vendor/js/core.js -->
-    <script src="../assets/vendor/libs/jquery/jquery.js"></script>
-    <script src="../assets/vendor/libs/popper/popper.js"></script>
-    <script src="../assets/vendor/js/bootstrap.js"></script>
-    <script src="../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="{{url_for('static', filename='assets/vendor/libs/jquery/jquery.js')}}"></script>
+    <script src="{{url_for('static', filename='assets/vendor/libs/popper/popper.js')}}"></script>
+    <script src="{{url_for('static', filename='assets/vendor/js/bootstrap.js')}}"></script>
+    <script src="{{url_for('static', filename='assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js')}}"></script>
 
-    <script src="../assets/vendor/js/menu.js"></script>
+    <script src="{{url_for('static', filename='assets/vendor/js/menu.js')}}"></script>
     <!-- endbuild -->
 
     <!-- Vendors JS -->
 
     <!-- Main JS -->
-    <script src="../assets/js/main.js"></script>
+    <script src="{{url_for('static', filename='assets/js/main.js')}}"></script>
+    <script src="{{url_for('static', filename='assets/jquery/login.js')}}"></script>
 
     <!-- Page JS -->
 

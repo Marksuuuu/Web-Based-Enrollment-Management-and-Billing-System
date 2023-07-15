@@ -8,6 +8,7 @@ import psycopg2.extras
 from werkzeug.utils import secure_filename
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer
+from datetime import datetime, timedelta
 
 
 db_config = {
@@ -37,12 +38,30 @@ login_manager.login_view = 'login'
 
 
 class User:
-    def __init__(self, username, password):
+    def __init__(self, username, password, activate, profile, email, role, firstname, lastname, middlename):
         self.username = username
         self.password = password
+        self.activate = activate
+        self.profile = profile
+        self.email = email
+        self.role = role
+        self.firstname = firstname
+        self.lastname = lastname
+        self.middlename = middlename
+        self.is_active = activate
 
     def get_id(self):
         return self.username
+
+    def is_authenticated(self):
+        return True  # Modify this based on your authentication logic
+
+    def is_active(self):
+        return self.is_active
+
+    def is_anonymous(self):
+        return False
+
 
 
 @login_manager.user_loader
@@ -50,12 +69,13 @@ def load_user(user_id):
     # Load user from the database based on the user_id
     with psycopg2.connect(**db_config) as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT username, password FROM public.user_details_tbl WHERE username = %s", (user_id,))
+            cur.execute("SELECT username, password, activate,  profile, email, role , firstname , lastname , middlename  FROM public.user_details_tbl WHERE username = %s", (user_id,))
             result = cur.fetchone()
             if result:
-                username, password = result
-                return User(username, password)
+                username, password, activate,  profile, email, role , firstname , lastname , middlename  = result
+                return User(username, password, activate, profile, email, role , firstname , lastname , middlename)
     return None
+
 
 
 def allowed_file(filename):
@@ -79,12 +99,13 @@ def send_verification_email(email):
 
 
 def generate_verification_token(email):
-    return serializer.dumps(email)
+    expiration = datetime.now() + timedelta(hours=2)  # Token expires after 2 hours
+    return serializer.dumps(email, expires=expiration)
 
 
 def verify_token(token):
     try:
-        email = serializer.loads(token, max_age=1200)  # Token expires after 20 Minutes (1200 seconds)
+        email = serializer.loads(token, max_age=7200)  # Token expires after 20 Minutes (1200 seconds)
         return email
     except:
         return None
@@ -153,8 +174,7 @@ def verify_account(token):
     else:
         return jsonify({'error': 'Invalid or expired token'}), 400
 
-
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
@@ -162,24 +182,29 @@ def login():
 
         with psycopg2.connect(**db_config) as conn:
             with conn.cursor() as cur:
-                cur.execute("SELECT username, password FROM public.user_details_tbl WHERE username = %s", (username,))
+                cur.execute("SELECT username, password, activate,  profile, email, role , firstname , lastname , middlename  activate FROM public.user_details_tbl WHERE username = %s", (username,))
                 result = cur.fetchone()
                 if result:
-                    _, hashed_password = result
+                    _, hashed_password, activate, profile, email, role, firstname, lastname, middlename = result
                     if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
-                        user = User(username, hashed_password)
-                        login_user(user)
-                        return redirect('/profile')
-                return jsonify({'error': 'Invalid username or password'}), 401
+                        if activate:
+                            user = User(username, password, activate, profile, email, role, firstname, lastname, middlename)
+                            login_user(user)
+                            return render_template('profile.html')
+                        else:
+                            return jsonify({'error': 'Account not verified. Please check your email for the verification link.'}), 401
+                return jsonify({'error': 'Invalid email or username or password'}), 401
 
     return render_template('login.html')
+
+
 
 
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
-    return redirect('/login')
+    return redirect('/')
 
 
 @app.route('/register')
@@ -187,7 +212,7 @@ def register():
     return render_template('register.html')
 
 
-@app.route('/')
+@app.route('/index')
 @login_required
 def index():
     return render_template('index.html')
@@ -200,4 +225,4 @@ def profile():
 
 
 if __name__ == '__main__':
-    app.run(host='localhost', port=8085, debug=True)
+    app.run(host='localhost', port=8090, debug=True)
