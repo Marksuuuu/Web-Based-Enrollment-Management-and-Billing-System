@@ -24,8 +24,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename = 'assets/vendor/css/core.css') }}" class="template-customizer-core-css" />
     <link rel="stylesheet" href="{{ url_for('static', filename = 'assets/vendor/css/theme-default.css') }}" class="template-customizer-theme-css" />
     <link rel="stylesheet" href="{{ url_for('static', filename = 'assets/css/demo.css') }}" />
-    <link rel="stylesheet" href="{{url_for('static', filename='assets/css/sweetalert2.css')}}"/>
-
+    <link rel="stylesheet" href="{{ url_for('static', filename = 'assets/css/sweetalert2.css') }}" />
 
     <!-- Vendors CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename = 'assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css') }}" />
@@ -43,7 +42,7 @@
   <body>
     <!-- Layout wrapper -->
     <div class="layout-wrapper layout-content-navbar">
-      <div class="layout-container" data-id='{{current_user.id}}'>
+      <div class="layout-container" data-id="{{ current_user.id }}">
         <!-- Menu -->
 
         <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
@@ -337,7 +336,7 @@
           </ul>
         </aside>
         <!-- / Menu -->
-        <div class="layout-page" data-name='{{current_user.email}}'>
+        <div class="layout-page" data-name="{{ current_user.email }}">
           <!-- Layout container -->
           <!-- Navbar -->
 
@@ -519,7 +518,7 @@
                           <input class="form-check-input" type="checkbox" name="accountActivation" id="accountActivation" />
                           <label class="form-check-label" for="accountActivation">I confirm my account deactivation</label>
                         </div>
-                        <button type="button" class="btn btn-danger deactivate-account" id='deactivateAccountBtn'>Deactivate Account</button>
+                        <button type="button" class="btn btn-danger deactivate-account" id="deactivateAccountBtn">Deactivate Account</button>
                       </form>
                     </div>
                   </div>
@@ -558,8 +557,7 @@
     <!-- Main JS -->
     <script src="{{ url_for('static', filename = 'assets/js/main.js') }}"></script>
     <script src="{{ url_for('static', filename = 'assets/jquery/profile.js') }}"></script>
-    <script src="{{url_for('static', filename='assets/js/sweetalert2.js')}}"></script>
-
+    <script src="{{ url_for('static', filename = 'assets/js/sweetalert2.js') }}"></script>
 
     <!-- Page JS -->
     <script src="{{ url_for('static', filename = 'assets/js/pages-account-settings-account.js') }}"></script>
