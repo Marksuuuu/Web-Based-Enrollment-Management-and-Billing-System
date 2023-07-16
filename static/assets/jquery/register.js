@@ -48,6 +48,27 @@ $(document).ready(function () {
 })
 
 
+function responseRegister(response) {
+    if (response.msg == 1) {
+        Swal.fire({icon: 'success', title: 'Register Success', text: 'Now Please Check your email for verification link to activate', showConfirmButton: true});
+        resetAll()
+    } else if (response.error) {
+        Swal.fire({icon: 'error', title: 'Register Error', text: response.error, showConfirmButton: true});
+    }
+    $('#waitMeDiv').waitMe("hide");
+}
+
+function resetAll() {
+    $('#username').val('')
+    $('#firstname').val('')
+    $('#middlename').val('')
+    $('#lastname').val('')
+    $('#email').val()
+    $('#password').val('')
+    $('#personRepeatPassword').val('')
+    $('#repeatPassword').val('');
+}
+
 function makeAjaxRequest(url, data) {
     $.ajax({
         url: url,
@@ -69,13 +90,7 @@ function makeAjaxRequest(url, data) {
             });
         },
         success: function (response) {
-            if (response.msg == 1) {
-                Swal.fire({icon: 'success', title: 'Register Success', text: 'Now Please Check your email for verification link to activate', showConfirmButton: true});
-                resetAll()
-            } else if (response.error) {
-                Swal.fire({icon: 'error', title: 'Register Error', text: response.error, showConfirmButton: true});
-            }
-            $('#waitMeDiv').waitMe("hide");
+            responseRegister(response)
         },
         error: function (jqXHR, textStatus, errorThrown) {
             if (jqXHR.status === 0) {
@@ -97,15 +112,4 @@ function makeAjaxRequest(url, data) {
     }).done(function () {
         $('#waitMeDiv').waitMe("hide");
     })
-}
-
-function resetAll() {
-    $('#username').val('')
-    $('#firstname').val('')
-    $('#middlename').val('')
-    $('#lastname').val('')
-    $('#email').val()
-    $('#password').val('')
-    $('#personRepeatPassword').val('')
-    $('#repeatPassword').val('');
 }
