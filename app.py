@@ -4,11 +4,14 @@ import os
 from flask import Flask, render_template, jsonify, request, redirect
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 import psycopg2
+import json
 import psycopg2.extras
 from werkzeug.utils import secure_filename
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer
 from datetime import datetime, timedelta
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 
 db_config = {
@@ -38,7 +41,8 @@ login_manager.login_view = 'login'
 
 
 class User:
-    def __init__(self, username, password, activate, profile, email, role, firstname, lastname, middlename):
+    def __init__(self, username, password, id, activate, profile, email, role, firstname, lastname, middlename):
+        self.id = id
         self.username = username
         self.password = password
         self.activate = activate
@@ -69,11 +73,11 @@ def load_user(user_id):
     # Load user from the database based on the user_id
     with psycopg2.connect(**db_config) as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT username, password, activate,  profile, email, role , firstname , lastname , middlename  FROM public.user_details_tbl WHERE username = %s", (user_id,))
+            cur.execute("SELECT username, password, id, activate,  profile, email, role , firstname , lastname , middlename  FROM public.user_details_tbl WHERE username = %s", (user_id,))
             result = cur.fetchone()
             if result:
-                username, password, activate,  profile, email, role , firstname , lastname , middlename  = result
-                return User(username, password, activate, profile, email, role , firstname , lastname , middlename)
+                username, password, id, activate,  profile, email, role , firstname , lastname , middlename  = result
+                return User(username, password, id, activate, profile, email, role , firstname , lastname , middlename)
     return None
 
 
@@ -91,17 +95,78 @@ def send_verification_email(email):
     sender = ('SYSTEM MAILER', 'WEB BASED ENROLLMENT MANAGEMENT SYSTEM')
     recipients = [email]
     subject = 'Account Activation'
-    body = f'Please click the following link to activate your account: {verification_link}'
+    def send_verification_email(email):
+        token = generate_verification_token(email)
+    domain = request.host_url.rstrip('/')
+    verification_link = f'{domain}/verify/{token}'
 
-    msg = Message(subject, sender=sender, recipients=recipients)
-    msg.body = body
+    sender = ('SYSTEM MAILER', 'WEB BASED ENROLLMENT MANAGEMENT SYSTEM')
+    recipients = [email]
+    subject = 'Account Activation'
+
+    # Create a multipart message
+    msg = MIMEMultipart('alternative')
+    msg['Subject'] = subject
+    msg['From'] = sender[0]
+    msg['To'] = email
+
+    # Create the HTML body
+    html_body = f'''
+    <html>
+    <head>
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+            }}
+            .container {{
+                max-width: 500px;
+                margin: 0 auto;
+                padding: 20px;
+            }}
+            h2 {{
+                color: #333;
+            }}
+            p {{
+                margin-bottom: 10px;
+            }}
+            .cta-button {{
+                display: inline-block;
+                background-color: #007bff;
+                color: #fff;
+                padding: 10px 20px;
+                border-radius: 4px;
+                text-decoration: none;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h2>Dear User,</h2>
+
+            <p>Thank you for registering with our enrollment management system.</p>
+            <p>To activate your account, please click on the following link:</p>
+
+            <p>
+                <a href="{verification_link}" class="cta-button">Activate Account</a>
+            </p>
+
+            <p>If you did not register for an account or have any questions, please contact our support team.</p>
+
+            <p>Best regards,</p>
+            <p>The Enrollment Management Team</p>
+        </div>
+    </body>
+    </html>
+    '''
+    
+    msg = Message(subject=subject, sender=sender, recipients=recipients)
+    msg.html = html_body
+    # Send the email
     mail.send(msg)
 
 
 def generate_verification_token(email):
-    expiration = datetime.now() + timedelta(hours=2)  # Token expires after 2 hours
-    return serializer.dumps(email, expires=expiration)
-
+    return serializer.dumps(email)
 
 def verify_token(token):
     try:
@@ -110,6 +175,22 @@ def verify_token(token):
     except:
         return None
 
+def send_password_reset_email(email):
+    token = generate_password_reset_token(email)
+    domain = request.host_url.rstrip('/')
+    reset_link = f'{domain}/reset-password/{token}'
+
+    sender = ('SYSTEM MAILER', 'WEB BASED ENROLLMENT MANAGEMENT SYSTEM')
+    recipients = [email]
+    subject = 'Password Reset'
+    body = f'Please click the following link to reset your password: {reset_link}'
+
+    msg = Message(subject, sender=sender, recipients=recipients)
+    msg.body = body
+    mail.send(msg)
+    
+def generate_password_reset_token(email):
+    return serializer.dumps(email)
 
 @app.route('/register', methods=['POST'])
 def register_insert():
@@ -130,7 +211,7 @@ def register_insert():
         # Check if an account with the same last name and email already exists
         with psycopg2.connect(**db_config) as conn:
             with conn.cursor() as cur:
-                cur.execute("SELECT COUNT(*) FROM public.user_details_tbl WHERE firstname = %s OR lastname = %s AND email = %s AND username = %s ", (firstname, lastname, email, username))
+                cur.execute("SELECT COUNT(*) FROM public.user_details_tbl WHERE (firstname = %s OR lastname = %s) AND email = %s AND username = %s", (firstname, lastname, email, username))
                 result = cur.fetchone()
                 if result and result[0] > 0:
                     return jsonify({'error': 'An account with the same last name and email already exists.'}), 400
@@ -152,9 +233,8 @@ def register_insert():
                     (username, firstname, middlename, lastname, email, hashed_password, file_path, role)) 
                 conn.commit()
                 send_verification_email(email)  # Send verification email
-                msg = "INSERT SUCCESS"
-                return jsonify({'message': msg}), 200
-
+                msg = {'msg': 1}
+                return jsonify(msg)
     except KeyError:
         return jsonify({'error': 'Invalid form data'}), 400
 
@@ -170,9 +250,38 @@ def verify_account(token):
             with conn.cursor() as cur:
                 cur.execute("UPDATE public.user_details_tbl SET activate = true WHERE email = %s", (email,))
                 conn.commit()
-                return redirect('/login')  # Redirect to the login page after successful activation
+                return redirect('/')
     else:
         return jsonify({'error': 'Invalid or expired token'}), 400
+    
+@app.route('/deactivate-account', methods=['POST'])
+def deactivate_account():
+    id = request.form['dataID']
+    with psycopg2.connect(**db_config) as conn:
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM public.user_details_tbl WHERE id = %s", (id,))
+            conn.commit()
+            return redirect('/')
+        
+@app.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form['email']
+
+        # Check if the email exists in the database
+        with psycopg2.connect(**db_config) as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT COUNT(*) FROM public.user_details_tbl WHERE email = %s", (email,))
+                result = cur.fetchone()
+                if result and result[0] > 0:
+                    send_password_reset_email(email)  # Send password reset email
+                    msg = {'msg': 1}
+                    return jsonify(msg)
+                else:
+                    msg = {'msg': 2}
+                    return jsonify(msg)
+
+    return render_template('forgot-password.html')
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
@@ -182,15 +291,15 @@ def login():
 
         with psycopg2.connect(**db_config) as conn:
             with conn.cursor() as cur:
-                cur.execute("SELECT username, password, activate,  profile, email, role , firstname , lastname , middlename  activate FROM public.user_details_tbl WHERE username = %s", (username,))
+                cur.execute("SELECT username, password, id ,activate,  profile, email, role , firstname , lastname , middlename  activate FROM public.user_details_tbl WHERE username = %s", (username,))
                 result = cur.fetchone()
                 if result:
-                    _, hashed_password, activate, profile, email, role, firstname, lastname, middlename = result
+                    _, hashed_password, id, activate, profile, email, role, firstname, lastname, middlename = result
                     if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
                         if activate:
-                            user = User(username, password, activate, profile, email, role, firstname, lastname, middlename)
+                            user = User(username, password, id, activate, profile, email, role, firstname, lastname, middlename)
                             login_user(user)
-                            return render_template('profile.html')
+                            return redirect('/profile')
                         else:
                             return jsonify({'error': 'Account not verified. Please check your email for the verification link.'}), 401
                 return jsonify({'error': 'Invalid email or username or password'}), 401

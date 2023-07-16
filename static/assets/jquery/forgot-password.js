@@ -1,33 +1,18 @@
-$(document).ready(function () {
-    $('#registerBtn').click(function (e) {
-        e.preventDefault();
+$('document').ready(function () {
+    $('#senddResetLink').click(function () {
+        sendForgotPassword()
 
-        register()
+    })
+});
 
-    });
+function sendForgotPassword() {
+    var email = $('#email').val();
+    var formData = new FormData();
 
-    function register() {
-        var username = $('#username').val()
-        var firstname = $('#firstname').val()
-        var middlename = $('#middlename').val()
-        var lastname = $('#lastname').val()
-        var email = $('#email').val()
-        var password = $('#password').val()
-        var repeat_password = $('#personRepeatPassword').val()
-        var fileInput = $('#profile')[0].files[0];
+    formData.append('email', email)
 
-        var formData = new FormData()
-        formData.append('fileInput', fileInput);
-        formData.append('username', username);
-        formData.append('firstname', firstname);
-        formData.append('middlename', middlename);
-        formData.append('lastname', lastname);
-        formData.append('email', email);
-        formData.append('password', password);
-
-        makeAjaxRequest('/register', formData);
-    }
-})
+    makeAjaxRequest('/forgot-password', formData)
+}
 
 
 function makeAjaxRequest(url, data) {
@@ -54,18 +39,18 @@ function makeAjaxRequest(url, data) {
             if (msg.msg == 1) {
                 Swal.fire({
                     icon: 'success',
-                    title: 'Register Success',
-                    text: 'Now Please Check your email for verification link to activate',
+                    title: 'Password Reset Email Sent',
+                    text: 'Please Check your email',
                     showConfirmButton: true,
                 });
-            } else{
+            } else if (msg.msg == 2) {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Register Error',
+                    title: 'Email Not Found',
+                    text: 'Email not found make sure you have a valid email address and if not Please register your account',
                     showConfirmButton: true,
                 });
             }
-            $('#waitMeDiv').waitMe("hide");
         },
         error: function (jqXHR, textStatus, errorThrown) {
             if (jqXHR.status === 0) {

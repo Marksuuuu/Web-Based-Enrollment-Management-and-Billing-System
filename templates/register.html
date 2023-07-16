@@ -33,6 +33,7 @@
   <link rel="stylesheet" href="{{url_for('static', filename='assets/css/demo.css')}}" />
 
   <link rel="stylesheet" href="{{url_for('static', filename='assets/css/sweetalert2.css')}}" />
+  <link rel="stylesheet" href="{{url_for('static', filename='assets/css/waitMe.min.css')}}"/>
 
   <!-- Vendors CSS -->
   <link rel="stylesheet"
@@ -51,7 +52,7 @@
 
 <body>
   <!-- Content -->
-
+<div id='waitMeDiv'> <!-- id='waitMeDiv' -->  
   <div class="container-xxl">
     <div class="authentication-wrapper authentication-basic container-p-y">
       <div class="authentication-inner">
@@ -175,6 +176,7 @@
       </div>
     </div>
   </div>
+</div>
 
   <!-- / Content -->
 
@@ -195,6 +197,11 @@
 
   <!-- Main JS -->
   <script src="{{url_for('static', filename='assets/js/main.js')}}"></script>
+  <script src="{{url_for('static', filename='assets/js/waitMe.min.js')}}"></script>
+  <link rel="stylesheet" href="{{url_for('static', filename='assets/waitMe/waitMe.js')}}" />
+  <link rel="stylesheet" href="{{url_for('static', filename='assets/waitMe/waitMe.min.js')}}" />
+  <script src="{{url_for('static', filename='assets/js/sweetalert2.js')}}"></script>
+
 
   <!-- Page JS -->
 
