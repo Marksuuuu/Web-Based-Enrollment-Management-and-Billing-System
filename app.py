@@ -235,11 +235,13 @@ def register_insert():
                 send_verification_email(email)  # Send verification email
                 msg = {'msg': 1}
                 return jsonify(msg)
+
     except KeyError:
         return jsonify({'error': 'Invalid form data'}), 400
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 
 @app.route('/verify/<token>')

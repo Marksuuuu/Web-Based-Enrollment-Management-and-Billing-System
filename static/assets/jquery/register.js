@@ -7,13 +7,30 @@ $(document).ready(function () {
     });
 
     function register() {
-        var username = $('#username').val()
-        var firstname = $('#firstname').val()
-        var middlename = $('#middlename').val()
-        var lastname = $('#lastname').val()
-        var email = $('#email').val()
-        var password = $('#password').val()
-        var repeat_password = $('#personRepeatPassword').val()
+        var username = $('#username').val();
+        var firstname = $('#firstname').val();
+        var middlename = $('#middlename').val();
+        var lastname = $('#lastname').val();
+        var email = $('#email').val();
+        var password = $('#password').val();
+        var repeat_password = $('#repeatPassword').val();
+
+        if (username == '', firstname == '', middlename == '', lastname == '', email == '', password == '', repeat_password == '') {
+            Swal.fire({icon: 'warning', title: 'Please fill in all the required fields.', showConfirmButton: true});
+            return;
+        }
+
+        var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (! emailRegex.test(email)) {
+            Swal.fire({icon: 'warning', title: 'Please enter a valid email address.', showConfirmButton: true});
+            return;
+        }
+
+        if (password != repeat_password) {
+            Swal.fire({icon: 'warning', title: 'Please check your password.', showConfirmButton: true});
+            return;
+        }
+
         var fileInput = $('#profile')[0].files[0];
 
         var formData = new FormData()
@@ -27,6 +44,7 @@ $(document).ready(function () {
 
         makeAjaxRequest('/register', formData);
     }
+
 })
 
 
@@ -50,20 +68,12 @@ function makeAjaxRequest(url, data) {
                 source: ''
             });
         },
-        success: function (msg) {
-            if (msg.msg == 1) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Register Success',
-                    text: 'Now Please Check your email for verification link to activate',
-                    showConfirmButton: true,
-                });
-            } else{
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Register Error',
-                    showConfirmButton: true,
-                });
+        success: function (response) {
+            if (response.msg == 1) {
+                Swal.fire({icon: 'success', title: 'Register Success', text: 'Now Please Check your email for verification link to activate', showConfirmButton: true});
+                resetAll()
+            } else if (response.error) {
+                Swal.fire({icon: 'error', title: 'Register Error', text: response.error, showConfirmButton: true});
             }
             $('#waitMeDiv').waitMe("hide");
         },
@@ -87,4 +97,15 @@ function makeAjaxRequest(url, data) {
     }).done(function () {
         $('#waitMeDiv').waitMe("hide");
     })
+}
+
+function resetAll() {
+    $('#username').val('')
+    $('#firstname').val('')
+    $('#middlename').val('')
+    $('#lastname').val('')
+    $('#email').val()
+    $('#password').val('')
+    $('#personRepeatPassword').val('')
+    $('#repeatPassword').val('');
 }
