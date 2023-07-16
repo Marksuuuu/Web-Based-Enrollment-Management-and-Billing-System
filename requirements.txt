@@ -1,0 +1,7 @@
+Flask==2.2.2
+Flask_Login==0.6.2
+Flask_Mail==0.9.1
+itsdangerous==2.1.2
+psycopg2==2.9.3
+python_bcrypt==0.3.2
+Werkzeug==2.2.2
