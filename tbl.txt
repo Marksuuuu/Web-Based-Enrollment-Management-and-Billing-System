@@ -1,0 +1,23 @@
+-- Table: public.user_details_tbl
+
+-- DROP TABLE IF EXISTS public.user_details_tbl;
+
+CREATE TABLE IF NOT EXISTS public.user_details_tbl
+(
+    id bigint NOT NULL DEFAULT nextval('user_details_tbl_id_seq'::regclass),
+    username character varying(250) COLLATE pg_catalog."default",
+    firstname character varying(250) COLLATE pg_catalog."default",
+    middlename character varying(250) COLLATE pg_catalog."default",
+    lastname character varying(250) COLLATE pg_catalog."default",
+    email character varying(250) COLLATE pg_catalog."default",
+    password character varying(250) COLLATE pg_catalog."default",
+    profile character varying(250) COLLATE pg_catalog."default",
+    role character varying(250) COLLATE pg_catalog."default",
+    activate boolean DEFAULT false,
+    CONSTRAINT user_details_tbl_pkey PRIMARY KEY (id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.user_details_tbl
+    OWNER to postgres;

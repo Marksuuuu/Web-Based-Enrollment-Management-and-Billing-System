@@ -317,6 +317,9 @@ def logout():
     logout_user()
     return redirect('/')
 
+@app.route('/access-roles')
+def access_roles():
+    return render_template('app-access-roles.html')
 
 @app.route('/register')
 def register():
