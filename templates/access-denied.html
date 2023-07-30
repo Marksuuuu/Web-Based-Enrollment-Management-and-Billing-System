@@ -1,0 +1,54 @@
+{% extends 'includes/base.html' %}
+
+{% block body %}
+  <body>
+    <!-- ?PROD Only: Google Tag Manager (noscript) (Default ThemeSelection: GTM-5DDHKGP, PixInvent: GTM-5J3LMKC) -->
+    <noscript>
+      <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5DDHKGP" height="0" width="0" style="display: none; visibility: hidden"></iframe>
+    </noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
+    <!-- Content -->
+
+    <!-- Not Authorized -->
+    <div class="container-xxl container-p-y">
+      <div class="misc-wrapper">
+        <h2 class="mb-2 mx-2">You are not authorized!</h2>
+        <p class="mb-4 mx-2">
+          You do not have permission to view this page using the credentials that you have provided while login. <br /> Please contact your site administrator.
+        </p>
+        <h2 class="mb-4 mx-2" style="text-transform: uppercase;">
+            Your current role are </b>{{current_user.role}}
+        </h2>   
+        <a href="{{url_for('index')}}" class="btn btn-primary">Back to home</a>
+        <div class="mt-5">
+          <img src="{{url_for('static', filename='assets/img/girl-with-laptop-light.png')}}" alt="page-misc-not-authorized-light" width="450" class="img-fluid" data-app-light-img="illustrations/girl-with-laptop-light.png" data-app-dark-img="illustrations/girl-with-laptop-dark.png" />
+        </div>
+      </div>
+    </div>
+    <!-- /Not Authorized -->
+
+    <!-- / Content -->
+
+    <!-- Core JS -->
+    <!-- build:js assets/vendor/js/core.js -->
+
+    <script src="../../assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="../../assets/vendor/libs/popper/popper.js"></script>
+    <script src="../../assets/vendor/js/bootstrap.js"></script>
+    <script src="../../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="../../assets/vendor/libs/hammer/hammer.js"></script>
+    <script src="../../assets/vendor/libs/i18n/i18n.js"></script>
+    <script src="../../assets/vendor/libs/typeahead-js/typeahead.js"></script>
+    <script src="../../assets/vendor/js/menu.js"></script>
+
+    <!-- endbuild -->
+
+    <!-- Vendors JS -->
+
+    <!-- Main JS -->
+    <script src="../../assets/js/main.js"></script>
+
+    <!-- Page JS -->
+  </body>
+{% endblock %}

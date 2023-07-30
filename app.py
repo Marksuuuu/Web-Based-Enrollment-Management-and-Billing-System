@@ -310,7 +310,6 @@ def login():
 
 
 
-
 @app.route('/logout')
 @login_required
 def logout():
@@ -318,8 +317,22 @@ def logout():
     return redirect('/')
 
 @app.route('/access-roles')
+@login_required
 def access_roles():
-    return render_template('app-access-roles.html')
+    if current_user.role == 'admin':
+        return render_template('app-access-roles.html')
+    else:
+        return render_template('access-denied.html'), 403
+    
+    
+@app.route('/user-list')
+@login_required
+def user_list():
+    if current_user.role == 'admin':
+        return render_template('app-users-list.html')
+    else:
+        return render_template('access-denied.html'), 403
+    
 
 @app.route('/register')
 def register():
